@@ -9,6 +9,10 @@ int backlightCounter = 0;
 int blinkCounter = 0;
 int lcdStatus = 0;     // LSB = is blinking, Next Bit = LCD is on
 
+void printLcdStatus(){
+  Serial.println(lcdStatus, BIN);
+}
+
 void turnBacklightOn(LiquidCrystal_I2C lcd){
   lcd.backlight();
   lcdStatus |= 2;
@@ -65,10 +69,7 @@ void stopAlarmSound(){
 void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
   lcd.setCursor(0, row);
   lcd.print("                ");
-  if(text.length() > 16)
-    lcd.setCursor(0, row);
-  else
-    lcd.setCursor((16 - text.length()) / 2, row);
+  lcd.setCursor(max(8 - text.length() / 2, 0), row);
   lcd.print(text);
 }
 

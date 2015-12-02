@@ -1,6 +1,7 @@
 #ifndef TAR_ACTIONS
 #define TAR_ACTIONS
 
+void printLcdStatus();
 void turnBacklightOn(LiquidCrystal_I2C lcd);
 void updateBacklight(LiquidCrystal_I2C lcd);
 void blinkLCD(LiquidCrystal_I2C lcd);

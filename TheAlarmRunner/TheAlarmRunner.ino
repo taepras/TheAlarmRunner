@@ -26,27 +26,18 @@ void setup() {
   pinMode(BUTTON3, INPUT_PULLUP);
   printLcdCenter(lcd, "INITIALIZING", 0);
   printLcdCenter(lcd, "THE ALARM RUNNER", 1);
-  delay(1000);
-  lcd.noBacklight();
+  delay(2000);
+  turnBacklightOn(lcd); 
 }
 
 void loop() {
   delay(REFRESH_RATE);
-
+  
   readButtons();
-
-  Serial.println(isActive());  
   
   updateBacklight(lcd);
   if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3)){
-    turnBacklightOn(lcd);
-    if(!isActive()){
-      resetInputs();
-      Serial.print(">>>> ");  
-      Serial.print(isJustPressed(BUTTON1));  
-      Serial.println(isJustPressedAndActive(BUTTON1));  
-      setActive();
-    }  
+    turnBacklightOn(lcd); 
   }
   
   switch(getMode()){
@@ -62,7 +53,6 @@ void loop() {
       case UPDATE: updateSetup(lcd); break;
     }  
   }
-
 
   updateButtonStates();
   updateMode();

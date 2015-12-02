@@ -33,9 +33,7 @@ void normalLoop(LiquidCrystal_I2C lcd){
   }
 
 #ifdef DEBUG
-  Serial.print("$$$$$$ ");
-  Serial.print(isJustPressed(BUTTON1));  
-  Serial.println(isJustPressedAndActive(BUTTON1));
+  
   if(isJustPressedAndActive(BUTTON2)){
     setMode(ALARM);
   }
@@ -58,7 +56,7 @@ void alarmSetup(LiquidCrystal_I2C lcd){
 void alarmLoop(LiquidCrystal_I2C lcd){
   static int job = 0;
   playAlarmSound();
-  if(!digitalRead(BUMPER))
+  if(isPressing(BUMPER))
     job = 1;
 
   if(job == 0){
@@ -72,17 +70,17 @@ void alarmLoop(LiquidCrystal_I2C lcd){
     digitalWrite(MOTOR_R_B, HIGH);
     digitalWrite(MOTOR_L_F, LOW);
     digitalWrite(MOTOR_R_F, LOW);
-    job = job + 1;
+    job++;
   }
   if(job > TURNING_TIME && job <= TURNING_TIME * 2){
     digitalWrite(MOTOR_L_F, HIGH);
     digitalWrite(MOTOR_R_B, HIGH);
     digitalWrite(MOTOR_L_B, LOW);
     digitalWrite(MOTOR_R_F, LOW);
-    job = job + 1;
-    if(job == TURNING_TIME * 2)
-      job = 0;
-  }  
+    job++;
+  } else {
+    job = 0;
+  }
   if(analogRead(LDR) > LDR_THRESHOLD ||
       isJustPressed(BUTTON1) || 
       isJustPressed(BUTTON2) || 

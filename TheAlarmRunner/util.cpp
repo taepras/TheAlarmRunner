@@ -2,49 +2,48 @@
 #include "util.h"
 #include "init.h"
 
-int pushed[3], pushing[3];
+int pushed, pushing;
 int mode = 0, oldMode = 1;
 int active = 0;
 
 void readButtons(){
-  pushing[0] = !digitalRead(BUTTON1);
-  pushing[1] = !digitalRead(BUTTON2);
-  pushing[2] = !digitalRead(BUTTON3);
-//  Serial.print(active);
-//  Serial.print(pushed[0]);
-//  Serial.print(pushing[0]);
-//  Serial.println(realIsJustPressed(BUTTON1));
-//  if((realIsJustPressed(BUTTON1) || realIsJustPressed(BUTTON2) || realIsJustPressed(BUTTON3)) && active < 2)
-//    active++;
+  pushing = 0;
+  for(int i = 0; i < 14; i++){
+    pushing |= (!digitalRead(i) << i);
+  }
+  Serial.print(pushing, HEX);
+  Serial.print(" ");
+  Serial.print(pushing, BIN);
+  Serial.print(" ");
+  Serial.print(isPressing(BUTTON1));
+  Serial.println(isJustPressed(BUTTON1));
+  if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3))
+    active++;
 }
 
 void updateButtonStates(){
-  for(int i = 0; i < BUTTON3 - BUTTON1 + 1; i++){
-    pushed[i] = pushing[i]; 
-  }
+  pushed = pushing;
 }
 
 void resetInputs(){
-  for(int i = 0; i < BUTTON3 - BUTTON1 + 1; i++){
-    pushed[i] = 0;
-    pushing[i] = 0; 
-  }
+  pushed = 0;
+  pushing = 0;
 }
 
 int isJustPressed(int port){
-  return !pushed[port - BUTTON1] && pushing[port - BUTTON1];
+  return !((pushed >> port) & 1) && ((pushing >> port) & 1);
 }
 
 int isJustPressedAndActive(int port){
-  return !pushed[port - BUTTON1] && pushing[port - BUTTON1] && active;
+  return !((pushed >> port) & 1) && ((pushing >> port) & 1) && active > 0;
 }
 
 int isPressing(int port){
-  return pushing[port - BUTTON1];
+  return (pushing >> port) & 1;
 }
 
 int wasPressed(int port){
-  return pushed[port - BUTTON1];
+  return (pushed >> port) & 1;
 }
 
 void updateMode(){
@@ -64,7 +63,7 @@ int modeJustChanged(){
 }
 
 void setActive(){
-  active = 1;
+  active++;
 }
 
 void setInactive(){

@@ -1,16 +1,14 @@
 #ifndef TAR_INIT
 #define TAR_INIT
 
-#include <LiquidCrystal_I2C.h>
-#include <Arduino.h>
-
 // --------------------- config ---------------------
 
 #define DEBUG
+
 #define LCD_LIGHT_TIME 8000
 #define LDR_THRESHOLD 850
 #define TURNING_TIME 1000
-#define REFRESH_RATE 50
+#define REFRESH_RATE 10
 #define BLINK_PERIOD 600
 #define CLOCK_PERIOD 1000
 
