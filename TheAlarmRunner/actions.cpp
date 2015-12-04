@@ -11,9 +11,9 @@
 
 int blinkCounter = 0;
 int backlightCounter = 0;
-int lcdStatus = 0;     // LSB = is blinking, Next Bit = LCD is on
+unsigned char lcdStatus = 0;     // LSB = is blinking, Next Bit = LCD is on
 
-int isLcdBacklightOn(){
+unsigned char isLcdBacklightOn(){
   return (lcdStatus >> 1) & 1;
 }
 
@@ -87,18 +87,18 @@ String get2DString(int num){
     return String(num);
 }
 
-int alarmHour;
-int alarmMin;
+unsigned char alarmHour;
+unsigned char alarmMin;
 
-int getAlarmHour(){
+unsigned char getAlarmHour(){
   return alarmHour;
 }
 
-int getAlarmMin(){
+unsigned char getAlarmMin(){
   return alarmMin;
 }
 
-int isAlarmTime(int hr, int mn){
+unsigned char isAlarmTime(int hr, int mn){
   return hr == alarmHour && mn == alarmMin;
 }
 
@@ -151,7 +151,7 @@ String getLineFromSerial(){
   return recieved;
 }
 
-bool waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
+unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
   unsigned int startTime = millis();
   String recievedLine = "";
   do{
@@ -164,14 +164,14 @@ bool waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
   return true;
 }
 
-bool eq(char *ca, String s){
+unsigned char eq(char *ca, String s){
   for(int i = 0; i < s.length(); i++)
     if(ca[i] != s.charAt(i))
       return false;
   return true;
 }
 
-bool waitForSerialString(String waiting){
+unsigned char waitForSerialString(String waiting){
   unsigned int startTime = millis();
   int n = waiting.length();
   char buff[n];
