@@ -3,7 +3,7 @@
 
 // --------------------- config ---------------------
 
-//#define DEBUG
+#define DEBUG
 
 #define LCD_LIGHT_TIME 8000
 #define LDR_THRESHOLD 850

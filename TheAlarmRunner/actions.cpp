@@ -132,8 +132,7 @@ void loadAlarmTime(){
 String getLineFromSerial(){
   unsigned int startTime = millis();
   String recieved = "";
-  char buff[2];
-  buff[0] = buff[1] = 0;
+  char buff[] = {0, 0};
   while(buff[1] != '\r' || buff[0] != '\n'){
     char tmp = (char)Serial.read();
     if(tmp > 0){
@@ -142,27 +141,24 @@ String getLineFromSerial(){
       buff[1] = buff[0];
       buff[0] = tmp;
     }
-    if(millis() - startTime >= SERIAL_TIMEOUT){
-//      printLcdCenter(lcd, "SERIAL", 0);
-//      printLcdCenter(lcd, "TIME OUT", 1);
+    if(millis() - startTime >= SERIAL_TIMEOUT)
       return "TIMEOUT";
-    }
   }
   return recieved;
 }
 
-unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
-  unsigned int startTime = millis();
-  String recievedLine = "";
-  do{
-    recievedLine = getLineFromSerial();
-    printLcdCenter(lcd, recievedLine, 0);
-    if(recievedLine == "TIMEOUT" || millis() - startTime >= SERIAL_TIMEOUT){
-      return false;
-    }
-  }while(recievedLine != waitingFor);
-  return true;
-}
+//unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
+//  unsigned int startTime = millis();
+//  String recievedLine = "";
+//  do{
+//    recievedLine = getLineFromSerial();
+//    printLcdCenter(lcd, recievedLine, 0);
+//    if(recievedLine == "TIMEOUT" || millis() - startTime >= SERIAL_TIMEOUT){
+//      return false;
+//    }
+//  }while(recievedLine != waitingFor);
+//  return true;
+//}
 
 unsigned char eq(char *ca, String s){
   for(int i = 0; i < s.length(); i++)
@@ -184,7 +180,7 @@ unsigned char waitForSerialString(String waiting){
       buff[n - 1] = serialIn;
     if(millis() - startTime >= SERIAL_TIMEOUT)
       return false;
-  }while(eq(buff, waiting));
+  }while(!eq(buff, waiting));
   return true;
 }
 

@@ -92,19 +92,19 @@ void updateSetup(LiquidCrystal_I2C lcd){
 String request = "GET http://tae.in.th/hw/timealarm.php HTTP/1.0";
 void updateLoop(LiquidCrystal_I2C lcd){
   Serial.println("AT");
-  if(waitForSerialLine("OK", lcd)){
+  if(waitForSerialString("OK\r\n")){
     printLcdCenter(lcd, "WIFI MODULE", 0);
     printLcdCenter(lcd, "READY", 1);
-    if(waitForSerialLine("OK", lcd)){
+    if(waitForSerialString("OK\r\n")){
       Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
-      if(waitForSerialLine("OK", lcd)){
+      if(waitForSerialString("OK\r\n")){
         printLcdCenter(lcd, "CONNECTED TO", 0);
         printLcdCenter(lcd, "SERVER", 1);
-        if(waitForSerialLine("OK", lcd)){
+        if(waitForSerialString("OK\r\n")){
           Serial.println("AT+CIPSEND=" + (request.length() + 2));
           if(waitForSerialString("> ")){
             Serial.println(request);
-            if(waitForSerialLine("ALARM", lcd)){
+            if(waitForSerialString("ALARM\r\n")){
               setAlarmTime(getLineFromSerial());
               printLcdCenter(lcd, "ALARM UPDATED", 0);
               printLcdCenter(lcd, (get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin())), 1);
