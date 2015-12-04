@@ -1,6 +1,6 @@
 #include <DS1307RTC.h>
-#include <EEPROM.h>
 #include <Time.h>
+#include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h> 
 #include "init.h"
@@ -14,7 +14,7 @@ void setup() {
   lcd.init();
   lcd.setCursor(0, 0);
   lcd.backlight();
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(SPEAKER, OUTPUT);
   pinMode(BUMPER, INPUT_PULLUP);
   pinMode(MOTOR_R_F, OUTPUT);
@@ -27,12 +27,18 @@ void setup() {
   printLcdCenter(lcd, "INITIALIZING", 0);
   printLcdCenter(lcd, "THE ALARM RUNNER", 1);
   delay(2000);
-  turnBacklightOn(lcd); 
+  turnBacklightOn(lcd);
+  loadAlarmTime();
 }
 
 void loop() {
   delay(REFRESH_RATE);
   
+  if(isLcdBacklightOn())
+    lcd.backlight();
+  else
+    lcd.noBacklight();
+    
   readButtons();
   
   updateBacklight(lcd);
@@ -44,6 +50,7 @@ void loop() {
     case NORMAL: normalLoop(lcd); break;
     case ALARM: alarmLoop(lcd); break;
     case UPDATE: updateLoop(lcd); break;
+    case VIEW_ALARM: viewAlarmLoop(lcd); break;
   }
     
   if(modeJustChanged()){
@@ -51,6 +58,7 @@ void loop() {
       case NORMAL: normalSetup(lcd); break;
       case ALARM: alarmSetup(lcd); break;
       case UPDATE: updateSetup(lcd); break;
+      case VIEW_ALARM: viewAlarmSetup(lcd); break;
     }  
   }
 

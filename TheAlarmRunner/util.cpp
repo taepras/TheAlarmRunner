@@ -8,15 +8,8 @@ int active = 0;
 
 void readButtons(){
   pushing = 0;
-  for(int i = 0; i < 14; i++){
+  for(int i = 0; i < 14; i++)
     pushing |= (!digitalRead(i) << i);
-  }
-  Serial.print(pushing, HEX);
-  Serial.print(" ");
-  Serial.print(pushing, BIN);
-  Serial.print(" ");
-  Serial.print(isPressing(BUTTON1));
-  Serial.println(isJustPressed(BUTTON1));
   if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3))
     active++;
 }

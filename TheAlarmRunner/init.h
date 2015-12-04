@@ -3,7 +3,7 @@
 
 // --------------------- config ---------------------
 
-#define DEBUG
+//#define DEBUG
 
 #define LCD_LIGHT_TIME 8000
 #define LDR_THRESHOLD 850
@@ -11,6 +11,8 @@
 #define REFRESH_RATE 10
 #define BLINK_PERIOD 600
 #define CLOCK_PERIOD 1000
+
+#define SERIAL_TIMEOUT 10000
 
 // ------------------- end config -------------------
 
@@ -20,6 +22,7 @@
 #define NORMAL 0
 #define ALARM 1
 #define UPDATE 2
+#define VIEW_ALARM 3
 
 #define RX 0
 #define TX 1

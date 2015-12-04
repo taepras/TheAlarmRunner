@@ -26,24 +26,25 @@ void normalLoop(LiquidCrystal_I2C lcd){
       printLcdCenter(lcd, timeString, 1);
       if(isAlarmTime(tm.Hour, tm.Minute) && tm.Second < 3)
         setMode(ALARM);
+      if(tm.Minute == 0 && tm.Second < 2)
+        setMode(UPDATE);
     } else {
       printLcdCenter(lcd, "RTC", 0);
       printLcdCenter(lcd, "ERROR", 1);
     }
   }
-
-#ifdef DEBUG
   
+#ifdef DEBUG
   if(isJustPressedAndActive(BUTTON2)){
     setMode(ALARM);
   }
-  if(isJustPressedAndActive(BUTTON1)){
-    storeAlarmTime(15, 50, lcd);
-    delay(5000);
-    loadAlarmTime(lcd);
-  }
-  
 #endif
+
+  if(isJustPressedAndActive(BUTTON1))
+    setMode(UPDATE);
+  if(isJustPressedAndActive(BUTTON2))
+    setMode(VIEW_ALARM);
+
 }
 
 void alarmSetup(LiquidCrystal_I2C lcd){
@@ -59,24 +60,14 @@ void alarmLoop(LiquidCrystal_I2C lcd){
   if(isPressing(BUMPER))
     job = 1;
 
-  if(job == 0){
-    digitalWrite(MOTOR_L_F, HIGH);
-    digitalWrite(MOTOR_R_F, HIGH);
-    digitalWrite(MOTOR_L_B, LOW);
-    digitalWrite(MOTOR_R_B, LOW);
-  }
+  if(job == 0)
+    driveMotor(HIGH, HIGH, LOW, LOW);
   if(job >= 1 && job <= TURNING_TIME){
-    digitalWrite(MOTOR_L_B, HIGH);
-    digitalWrite(MOTOR_R_B, HIGH);
-    digitalWrite(MOTOR_L_F, LOW);
-    digitalWrite(MOTOR_R_F, LOW);
+    driveMotor(LOW, LOW, HIGH, HIGH);
     job++;
   }
   if(job > TURNING_TIME && job <= TURNING_TIME * 2){
-    digitalWrite(MOTOR_L_F, HIGH);
-    digitalWrite(MOTOR_R_B, HIGH);
-    digitalWrite(MOTOR_L_B, LOW);
-    digitalWrite(MOTOR_R_F, LOW);
+    driveMotor(HIGH, LOW, LOW, HIGH);
     job++;
   } else {
     job = 0;
@@ -89,18 +80,53 @@ void alarmLoop(LiquidCrystal_I2C lcd){
     setMode(NORMAL);
     stopAlarmSound();
     noBlinkLCD(lcd);
-    digitalWrite(MOTOR_L_F, LOW);
-    digitalWrite(MOTOR_R_F, LOW);
-    digitalWrite(MOTOR_L_B, LOW);
-    digitalWrite(MOTOR_R_B, LOW);
+    driveMotor(LOW, LOW, LOW, LOW);
   }  
 }
 
 void updateSetup(LiquidCrystal_I2C lcd){
-  lcd.clear();
-  lcd.print("UPDATE.");
+  printLcdCenter(lcd, "UPDATING", 0);
+  printLcdCenter(lcd, "ALARM TIME", 1);
 }
 
+String request = "GET http://tae.in.th/hw/timealarm.php HTTP/1.0";
 void updateLoop(LiquidCrystal_I2C lcd){
-  lcd.setCursor(0, 1);
+  Serial.println("AT");
+  if(waitForSerialLine("OK", lcd)){
+    printLcdCenter(lcd, "WIFI MODULE", 0);
+    printLcdCenter(lcd, "READY", 1);
+    if(waitForSerialLine("OK", lcd)){
+      Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
+      if(waitForSerialLine("OK", lcd)){
+        printLcdCenter(lcd, "CONNECTED TO", 0);
+        printLcdCenter(lcd, "SERVER", 1);
+        if(waitForSerialLine("OK", lcd)){
+          Serial.println("AT+CIPSEND=" + (request.length() + 2));
+          if(waitForSerialString("> ")){
+            Serial.println(request);
+            if(waitForSerialLine("ALARM", lcd)){
+              setAlarmTime(getLineFromSerial());
+              printLcdCenter(lcd, "ALARM UPDATED", 0);
+              printLcdCenter(lcd, (get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin())), 1);
+              setMode(NORMAL);
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+  printLcdCenter(lcd, "WI-FI UPDATE", 0);
+  printLcdCenter(lcd, "ERROR!", 1);
+  setMode(NORMAL);
 }
+
+void viewAlarmSetup(LiquidCrystal_I2C lcd){
+  printLcdCenter(lcd, "UPCOMING ALARM", 0);
+  printLcdCenter(lcd, (get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin())), 1);
+}
+
+void viewAlarmLoop(LiquidCrystal_I2C lcd){
+  setMode(NORMAL);
+}
+

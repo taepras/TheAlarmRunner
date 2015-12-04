@@ -1,7 +1,7 @@
 #ifndef TAR_ACTIONS
 #define TAR_ACTIONS
 
-void printLcdStatus();
+int isLcdBacklightOn();
 void turnBacklightOn(LiquidCrystal_I2C lcd);
 void updateBacklight(LiquidCrystal_I2C lcd);
 void blinkLCD(LiquidCrystal_I2C lcd);
@@ -13,7 +13,12 @@ String get2DString(int num);
 int getAlarmHour();
 int getAlarmMin();
 int isAlarmTime(int, int);
-void storeAlarmTime(int, int, LiquidCrystal_I2C);
-void loadAlarmTime(LiquidCrystal_I2C lcd);
+void setAlarmTime(String);
+void loadAlarmTime();
+void setClockTime(String);
+String getLineFromSerial();
+bool waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd);
+void driveMotor(int lf, int rf ,int lb, int rb);
+bool waitForSerialString(String waiting);
 
 #endif
