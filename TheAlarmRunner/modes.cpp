@@ -1,4 +1,6 @@
-#include <DS1307RTC.h>
+#include <SoftwareSerial.h>
+
+#include "DS1307RTC_CUSTOM.h"
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
 #include <Time.h>
@@ -17,13 +19,28 @@ void normalLoop(LiquidCrystal_I2C lcd){
   if(timeRefreshCount <= 0){
     timeRefreshCount = CLOCK_PERIOD / REFRESH_RATE;
     tmElements_t tm;
-    String timeString;
+    //TODO: FIX THIS
+    char timeString[] = "00:00:00";
+    char dateString[] = "00/00/0000";
     int tmp;
     if (RTC.read(tm)) {
-      timeString = (get2DString(tm.Hour) + ":" + get2DString(tm.Minute) + ":" + get2DString(tm.Second));
+      timeString[0] = get2DString(tm.Hour)[0];
+      timeString[1] = get2DString(tm.Hour)[1];
+      timeString[3] = get2DString(tm.Minute)[0];
+      timeString[4] = get2DString(tm.Minute)[1];
+      timeString[6] = get2DString(tm.Second)[0];
+      timeString[7] = get2DString(tm.Second)[1];
       printLcdCenter(lcd, timeString, 0);
-      timeString = (get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
-      printLcdCenter(lcd, timeString, 1);
+      dateString[0] = get2DString(tm.Day)[0];
+      dateString[1] = get2DString(tm.Day)[1];
+      dateString[3] = get2DString(tm.Month)[0];
+      dateString[4] = get2DString(tm.Month)[1];
+      dateString[6] = get2DString(tm.Year)[0];
+      dateString[7] = get2DString(tm.Year)[1];
+      dateString[8] = get2DString(tm.Year)[2];
+      dateString[9] = get2DString(tm.Year)[3];
+      //dateString = (const char*)(get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
+      printLcdCenter(lcd, dateString, 1);
       if(isAlarmTime(tm.Hour, tm.Minute) && tm.Second < 3)
         setMode(ALARM);
       if(tm.Minute == 0 && tm.Second < 2)
@@ -48,9 +65,9 @@ void normalLoop(LiquidCrystal_I2C lcd){
 }
 
 void alarmSetup(LiquidCrystal_I2C lcd){
-  lcd.clear();
   printLcdCenter(lcd, "IT'S TIME!.", 0);
-  printLcdCenter(lcd, get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin()), 1);
+  Serial.print(loadAlarmString());
+  printLcdCenter(lcd, loadAlarmString(), 1);
   blinkLCD(lcd);
 }
 
@@ -89,41 +106,44 @@ void updateSetup(LiquidCrystal_I2C lcd){
   printLcdCenter(lcd, "ALARM TIME", 1);
 }
 
-String request = "GET http://tae.in.th/hw/timealarm.php HTTP/1.0";
+extern SoftwareSerial mySerial;
+const char* request = "GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n";
 void updateLoop(LiquidCrystal_I2C lcd){
-  Serial.println("AT");
-  if(waitForSerialString("OK\r\n")){
-    printLcdCenter(lcd, "WIFI MODULE", 0);
-    printLcdCenter(lcd, "READY", 1);
-    if(waitForSerialString("OK\r\n")){
-      Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
-      if(waitForSerialString("OK\r\n")){
-        printLcdCenter(lcd, "CONNECTED TO", 0);
-        printLcdCenter(lcd, "SERVER", 1);
-        if(waitForSerialString("OK\r\n")){
-          Serial.println("AT+CIPSEND=" + (request.length() + 2));
-          if(waitForSerialString("> ")){
-            Serial.println(request);
-            if(waitForSerialString("ALARM\r\n")){
-              setAlarmTime(getLineFromSerial());
-              printLcdCenter(lcd, "ALARM UPDATED", 0);
-              printLcdCenter(lcd, (get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin())), 1);
-              setMode(NORMAL);
-              return;
-            }
-          }
-        }
-      }
-    }
-  }
-  printLcdCenter(lcd, "WI-FI UPDATE", 0);
-  printLcdCenter(lcd, "ERROR!", 1);
+//  mySerial.println("AT");
+//  if(waitForSerialString("OK\r\n")){
+//    printLcdCenter(lcd, "WIFI MODULE", 0);
+//    printLcdCenter(lcd, "READY", 1);
+//    mySerial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
+//    if(waitForSerialString("OK\r\n")){
+//      printLcdCenter(lcd, "CONNECTED TO", 0);
+//      printLcdCenter(lcd, "SERVER", 1);
+//      mySerial.println("AT+CIPSEND=46");
+//      if(waitForSerialString("> ")){
+//        mySerial.print(request);
+//        if(waitForSerialString("ALARM\r\n")){
+//          setAlarmTime(getLineFromSerial());
+//          printLcdCenter(lcd, "ALARM UPDATED", 0);
+//          Serial.print(loadAlarmString());
+////          #ifdef DEBUG
+//            Serial.println("WI-FI UPDATING SUCCESS!");
+////          #endif
+//          setMode(NORMAL);
+//          return;
+//        }
+//      }
+//    }
+//  }
+//  printLcdCenter(lcd, "WI-FI UPDATE", 0);
+//  printLcdCenter(lcd, "ERROR!", 1);
+  delay(2000);
   setMode(NORMAL);
 }
 
 void viewAlarmSetup(LiquidCrystal_I2C lcd){
   printLcdCenter(lcd, "UPCOMING ALARM", 0);
-  printLcdCenter(lcd, (get2DString(getAlarmHour()) + ":" + get2DString(getAlarmMin())), 1);
+  printLcdCenter(lcd, loadAlarmString(), 1);
+  Serial.print(loadAlarmString());
+  delay(2000);
 }
 
 void viewAlarmLoop(LiquidCrystal_I2C lcd){

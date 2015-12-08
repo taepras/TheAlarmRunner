@@ -10,6 +10,7 @@ void playAlarmSound();
 void stopAlarmSound();
 void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row);
 String get2DString(int num);
+String loadAlarmString();
 unsigned char getAlarmHour();
 unsigned char getAlarmMin();
 unsigned char isAlarmTime(int, int);

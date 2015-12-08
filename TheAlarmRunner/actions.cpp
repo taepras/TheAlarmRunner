@@ -1,8 +1,10 @@
+#include <SoftwareSerial.h>
+
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
 #include <Time.h>
-#include <DS1307RTC.h>
+#include "DS1307RTC_CUSTOM.h"
 #include "util.h"
 #include "init.h"
 #include "actions.h"
@@ -75,16 +77,15 @@ void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
   lcd.setCursor(0, row);
   lcd.print("                ");
   lcd.setCursor(max(8 - text.length() / 2, 0), row);
-  lcd.print(text);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- RTC
 
 String get2DString(int num){
-  if(num < 10)
-    return "0" + String(num);
-  else
-    return String(num);
+  String a;
+  a += (num / 10) + '0';
+  a += (num % 10) + '0';
+  return a;  
 }
 
 unsigned char alarmHour;
@@ -114,6 +115,13 @@ void loadAlarmTime(){
   alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
 }
 
+String loadAlarmString(){
+  String c = "";
+  for(int i = 0; i < 5; i++)
+    c += (char)EEPROM.read(i);
+  return c;
+}
+
 //void setClockTime(String timeString){
 //  // yyyy/mm/dd hh:mm:ss
 //  int ye = (timeString.charAt(0) - '0') * 1000 + (timeString.charAt(1) - '0') * 100 + (timeString.charAt(2) - '0') * 10 + (timeString.charAt(3) - '0');
@@ -129,18 +137,31 @@ void loadAlarmTime(){
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- Serial & Wifi
 
+long startTime;
+extern SoftwareSerial mySerial;
+
 String getLineFromSerial(){
-  unsigned int startTime = millis();
+  #ifdef DEBUG
+    Serial.println("Waiting for input");
+  #endif
+  startTime = millis();
   String recieved = "";
   char buff[] = {0, 0};
   while(buff[1] != '\r' || buff[0] != '\n'){
-    char tmp = (char)Serial.read();
-    if(tmp > 0){
-      if(buff[1] > 0)
-        recieved += buff[1];
-      buff[1] = buff[0];
-      buff[0] = tmp;
-    }
+    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    if(buff[1] > 0)
+      recieved += buff[1];
+    buff[1] = buff[0];
+    buff[0] = (char)mySerial.read();
+    #ifdef DEBUG
+      Serial.print("Buffer: ");
+      Serial.print((char)buff[1]);
+      Serial.print((char)buff[0]);
+      Serial.print("\ttime: ");
+      Serial.print(startTime);
+      Serial.print(" vs ");
+      Serial.println(millis());
+    #endif
     if(millis() - startTime >= SERIAL_TIMEOUT)
       return "TIMEOUT";
   }
@@ -161,25 +182,43 @@ String getLineFromSerial(){
 //}
 
 unsigned char eq(char *ca, String s){
-  for(int i = 0; i < s.length(); i++)
+  for(int i = 0; i < s.length(); i++){
     if(ca[i] != s.charAt(i))
       return false;
+  }
+  #ifdef DEBUG
+    Serial.println("EQ!");
+  #endif
   return true;
 }
 
 unsigned char waitForSerialString(String waiting){
-  unsigned int startTime = millis();
+  #ifdef DEBUG
+    Serial.print("Waiting for... ");
+    Serial.println(waiting);
+  #endif 
+  startTime = millis();
   int n = waiting.length();
   char buff[n];
+  for(int i = 0; i < n; i++) buff[i] = 0;
   do{
+    #ifdef DEBUG
+      Serial.print("Buffer: ");
+      for(int i = 0; i < n; i++){
+        Serial.print((char)buff[i]);
+      }
+      Serial.println("");
+    #endif
     for(int i = 0; i < n - 1; i++){
       buff[i] = buff[i + 1];
     }
-    char serialIn = (char)Serial.read();
-    if(serialIn != -1)
-      buff[n - 1] = serialIn;
-    if(millis() - startTime >= SERIAL_TIMEOUT)
+    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    buff[n - 1] = (char)mySerial.read();
+    Serial.print(buff[n-1]);
+    if(millis() - startTime >= SERIAL_TIMEOUT){
+      Serial.println("TIMEOUT!");
       return false;
+    }
   }while(!eq(buff, waiting));
   return true;
 }
