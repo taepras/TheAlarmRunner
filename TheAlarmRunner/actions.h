@@ -10,6 +10,8 @@ void playAlarmSound();
 void stopAlarmSound();
 void printLcdCenter(String text, int row);
 String get2DString(int num);
+unsigned char  bcdToDec(unsigned char  val);
+unsigned char  decToBcd(unsigned char  val);
 String loadAlarmString();
 unsigned char getAlarmHour();
 unsigned char getAlarmMin();

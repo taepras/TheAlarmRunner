@@ -1,8 +1,8 @@
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
-#include <Time.h>
-#include <DS1307RTC.h>
+//#include <Time.h>
+//#include <DS1307RTC.h>
 #include "util.h"
 #include "init.h"
 #include "actions.h"
@@ -90,6 +90,16 @@ String get2DString(int num){
   return a;  
 }
 
+byte bcdToDec(byte val) {
+  return ( (val/16*10) + (val%16) );
+}
+
+byte decToBcd(byte val) {
+  return ( (val/10*16) + (val%10) );
+}
+
+//unsigned char alarmHour;
+//unsigned char alarmMin;
 
 unsigned char getAlarmHour(){
   return (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');

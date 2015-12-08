@@ -1,7 +1,7 @@
-#include <DS1307RTC.h>
+//#include <DS1307RTC.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
-#include <Time.h>
+//#include <Time.h>
 #include "modes.h"
 #include "util.h"
 #include "init.h"
@@ -18,36 +18,67 @@ void normalLoop(){
   timeRefreshCount--;
   if(timeRefreshCount <= 0){
     timeRefreshCount = CLOCK_PERIOD / REFRESH_RATE;
-    tmElements_t tm;
+//    tmElements_t tm;
     //TODO: FIX THIS
     char timeString[] = "00:00:00";
     char dateString[] = "00/00/0000";
-    if (RTC.read(tm)) {
-      timeString[0] = get2DString(tm.Hour)[0];
-      timeString[1] = get2DString(tm.Hour)[1];
-      timeString[3] = get2DString(tm.Minute)[0];
-      timeString[4] = get2DString(tm.Minute)[1];
-      timeString[6] = get2DString(tm.Second)[0];
-      timeString[7] = get2DString(tm.Second)[1];
-      printLcdCenter(timeString, 0);
-      dateString[0] = get2DString(tm.Day)[0];
-      dateString[1] = get2DString(tm.Day)[1];
-      dateString[3] = get2DString(tm.Month)[0];
-      dateString[4] = get2DString(tm.Month)[1];
-      dateString[6] = get2DString(tm.Year)[0];
-      dateString[7] = get2DString(tm.Year)[1];
-      dateString[8] = get2DString(tm.Year)[2];
-      dateString[9] = get2DString(tm.Year)[3];
-      //dateString = (const char*)(get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
-      printLcdCenter(dateString, 1);
-      if(isAlarmTime(tm.Hour, tm.Minute) && tm.Second < 3)
+    //if (RTC.read(tm)) {
+
+      byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+      
+      Wire.beginTransmission(DS1307_I2C_ADDRESS);
+      Wire.write(decToBcd(0));
+      Wire.endTransmission();
+      Wire.requestFrom(DS1307_I2C_ADDRESS, 7);
+      second = bcdToDec(Wire.read() & 0x7f);
+      minute = bcdToDec(Wire.read());
+      hour = bcdToDec(Wire.read() & 0x3f);
+      dayOfWeek = bcdToDec(Wire.read());
+      dayOfMonth = bcdToDec(Wire.read());
+      month = bcdToDec(Wire.read());
+      year = bcdToDec(Wire.read());
+      lcd.setCursor(0, 0);
+      lcd.print("   ");
+      lcd.print(get2DString(hour));
+      lcd.print(":");
+      lcd.print(get2DString(minute));
+      lcd.print(":");
+      lcd.print(get2DString(second));
+      lcd.print("   ");
+      lcd.setCursor(0, 1);
+      lcd.print("  ");
+      lcd.print(get2DString(month));
+      lcd.print("/");
+      lcd.print(get2DString(dayOfMonth));
+      lcd.print("/");
+      lcd.print(year,DEC);
+      lcd.print("  ");
+
+//      timeString[0] = get2DString(tm.Hour)[0];
+//      timeString[1] = get2DString(tm.Hour)[1];
+//      timeString[3] = get2DString(tm.Minute)[0];
+//      timeString[4] = get2DString(tm.Minute)[1];
+//      timeString[6] = get2DString(tm.Second)[0];
+//      timeString[7] = get2DString(tm.Second)[1];
+//      printLcdCenter(timeString, 0);
+//      dateString[0] = get2DString(tm.Day)[0];
+//      dateString[1] = get2DString(tm.Day)[1];
+//      dateString[3] = get2DString(tm.Month)[0];
+//      dateString[4] = get2DString(tm.Month)[1];
+//      dateString[6] = get2DString(tm.Year)[0];
+//      dateString[7] = get2DString(tm.Year)[1];
+//      dateString[8] = get2DString(tm.Year)[2];
+//      dateString[9] = get2DString(tm.Year)[3];
+//      //dateString = (const char*)(get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
+//      printLcdCenter(dateString, 1);
+      if(isAlarmTime(hour, minute) && second < 3)
         setMode(ALARM);
-      if(tm.Minute == 0 && tm.Second < 2)
+      if(minute == 0 && second < 3)
         setMode(UPDATE);
-    } else {
-      printLcdCenter("RTC", 0);
-      printLcdCenter("ERROR", 1);
-    }
+//    } else {
+//      printLcdCenter("RTC", 0);
+//      printLcdCenter("ERROR", 1);
+//    }
   }
   
 #ifdef DEBUG_ALARM

@@ -3,7 +3,7 @@
 #include "init.h"
 
 short pushed, pushing;
-int mode = 0, oldMode = 1;
+unsigned char mode = 0, oldMode = 1;
 short active = 0;
 
 void readButtons(){
