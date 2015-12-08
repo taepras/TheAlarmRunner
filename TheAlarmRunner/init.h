@@ -3,7 +3,8 @@
 
 // --------------------- config ---------------------
 
-//#define DEBUG
+//#define SERIAL_DEBUG
+//#define DEBUG_ALARM
 
 #define LCD_LIGHT_TIME 8000
 #define LDR_THRESHOLD 850

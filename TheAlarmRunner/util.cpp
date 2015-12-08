@@ -2,15 +2,15 @@
 #include "util.h"
 #include "init.h"
 
-int pushed, pushing;
+short pushed, pushing;
 int mode = 0, oldMode = 1;
-int active = 0;
+short active = 0;
 
 void readButtons(){
   pushing = 0;
   for(int i = 0; i < 14; i++)
     pushing |= (!digitalRead(i) << i);
-  if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3))
+  if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2))// || isJustPressed(BUTTON3))
     active++;
 }
 
@@ -35,9 +35,9 @@ int isPressing(int port){
   return (pushing >> port) & 1;
 }
 
-int wasPressed(int port){
-  return (pushed >> port) & 1;
-}
+//int wasPressed(int port){
+//  return (pushed >> port) & 1;
+//}
 
 void updateMode(){
   oldMode = mode;
@@ -55,15 +55,15 @@ int modeJustChanged(){
   return mode != oldMode;
 }
 
-void setActive(){
-  active++;
-}
-
-void setInactive(){
-  active = 0;
-}
-
-int isActive(){
-  return active;
-}
+//void setActive(){
+//  active++;
+//}
+//
+//void setInactive(){
+//  active = 0;
+//}
+//
+//int isActive(){
+//  return active;
+//}
 

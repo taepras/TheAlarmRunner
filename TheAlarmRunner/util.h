@@ -7,14 +7,14 @@ void resetInputs();
 int isJustPressed(int port);
 int isJustPressedAndActive(int port);
 int isPressing(int port);
-int wasPressed(int port);
+//int wasPressed(int port);
 void updateMode();
 void setMode(int newMode);
 int getMode();
 int modeJustChanged();
-void setActive();
-void setInactive();
-int isActive();
+//void setActive();
+//void setInactive();
+//int isActive();
 
 #endif
 

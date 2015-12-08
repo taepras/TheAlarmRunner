@@ -1,19 +1,21 @@
-#include <SoftwareSerial.h>
-
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 #include <Arduino.h>
 #include <Time.h>
-#include "DS1307RTC_CUSTOM.h"
+#include <DS1307RTC.h>
 #include "util.h"
 #include "init.h"
 #include "actions.h"
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- LCD
 
+extern LiquidCrystal_I2C lcd;
+
 int blinkCounter = 0;
 int backlightCounter = 0;
 unsigned char lcdStatus = 0;     // LSB = is blinking, Next Bit = LCD is on
+
+extern short active;
 
 unsigned char isLcdBacklightOn(){
   return (lcdStatus >> 1) & 1;
@@ -22,12 +24,12 @@ unsigned char isLcdBacklightOn(){
 void lcdBacklightOn(){ lcdStatus |= 2; }
 void lcdBacklightOff(){ lcdStatus &= ~2; }
 
-void turnBacklightOn(LiquidCrystal_I2C lcd){
+void turnBacklightOn(){
   lcdBacklightOn();
   backlightCounter = LCD_LIGHT_TIME / REFRESH_RATE;
 }
 
-void updateBacklight(LiquidCrystal_I2C lcd){
+void updateBacklight(){
   if(lcdStatus & 1 == 1){
     if (blinkCounter <= 0) {
       if(lcdStatus & 2)
@@ -41,8 +43,8 @@ void updateBacklight(LiquidCrystal_I2C lcd){
   }else{
     if (backlightCounter <= 0) {
       lcdBacklightOff();
-      if(isActive())
-        setInactive();
+      if(active > 0)
+        active = 0;
       lcdStatus &= ~2;
     } else {
       lcdBacklightOn();
@@ -51,15 +53,15 @@ void updateBacklight(LiquidCrystal_I2C lcd){
   }
 }
 
-void blinkLCD(LiquidCrystal_I2C lcd){
+void blinkLCD(){
   lcdStatus |= 1;
   blinkCounter = 0;
 }
 
-void noBlinkLCD(LiquidCrystal_I2C lcd){
+void noBlinkLCD(){
   lcdStatus &= ~1;
   blinkCounter = 0;
-  turnBacklightOn(lcd);
+  turnBacklightOn();
 }
 
 void playAlarmSound(){
@@ -73,7 +75,7 @@ void stopAlarmSound(){
   noTone(SPEAKER);
 }
 
-void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
+void printLcdCenter(String text, int row){
   lcd.setCursor(0, row);
   lcd.print("                ");
   lcd.setCursor(max(8 - text.length() / 2, 0), row);
@@ -88,32 +90,30 @@ String get2DString(int num){
   return a;  
 }
 
-unsigned char alarmHour;
-unsigned char alarmMin;
 
 unsigned char getAlarmHour(){
-  return alarmHour;
+  return (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
 }
 
 unsigned char getAlarmMin(){
-  return alarmMin;
+  return (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
 }
 
 unsigned char isAlarmTime(int hr, int mn){
-  return hr == alarmHour && mn == alarmMin;
+  return hr == getAlarmHour() && mn == getAlarmMin();
 }
 
 void setAlarmTime(String timeString){
   lcdBacklightOn();
   for(int i = 0; i < timeString.length(); i++)
     EEPROM.write(i, timeString.charAt(i));
-  loadAlarmTime();
+//  loadAlarmTime();
 }
 
-void loadAlarmTime(){
-  alarmHour = (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
-  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
-}
+//void loadAlarmTime(){
+//  alarmHour = (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
+//  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
+//}
 
 String loadAlarmString(){
   String c = "";
@@ -138,22 +138,21 @@ String loadAlarmString(){
 //-------------------------------------------------------------------------------------------------------------------------------------------------- Serial & Wifi
 
 long startTime;
-extern SoftwareSerial mySerial;
 
 String getLineFromSerial(){
-  #ifdef DEBUG
+  #ifdef SERIAL_DEBUG
     Serial.println("Waiting for input");
   #endif
   startTime = millis();
   String recieved = "";
   char buff[] = {0, 0};
   while(buff[1] != '\r' || buff[0] != '\n'){
-    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
     if(buff[1] > 0)
       recieved += buff[1];
     buff[1] = buff[0];
-    buff[0] = (char)mySerial.read();
-    #ifdef DEBUG
+    buff[0] = (char)Serial.read();
+    #ifdef SERIAL_DEBUG
       Serial.print("Buffer: ");
       Serial.print((char)buff[1]);
       Serial.print((char)buff[0]);
@@ -168,32 +167,19 @@ String getLineFromSerial(){
   return recieved;
 }
 
-//unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd){
-//  unsigned int startTime = millis();
-//  String recievedLine = "";
-//  do{
-//    recievedLine = getLineFromSerial();
-//    printLcdCenter(lcd, recievedLine, 0);
-//    if(recievedLine == "TIMEOUT" || millis() - startTime >= SERIAL_TIMEOUT){
-//      return false;
-//    }
-//  }while(recievedLine != waitingFor);
-//  return true;
-//}
-
 unsigned char eq(char *ca, String s){
   for(int i = 0; i < s.length(); i++){
     if(ca[i] != s.charAt(i))
       return false;
   }
-  #ifdef DEBUG
+  #ifdef SERIAL_DEBUG
     Serial.println("EQ!");
   #endif
   return true;
 }
 
 unsigned char waitForSerialString(String waiting){
-  #ifdef DEBUG
+  #ifdef SERIAL_DEBUG
     Serial.print("Waiting for... ");
     Serial.println(waiting);
   #endif 
@@ -202,7 +188,7 @@ unsigned char waitForSerialString(String waiting){
   char buff[n];
   for(int i = 0; i < n; i++) buff[i] = 0;
   do{
-    #ifdef DEBUG
+    #ifdef SERIAL_DEBUG
       Serial.print("Buffer: ");
       for(int i = 0; i < n; i++){
         Serial.print((char)buff[i]);
@@ -212,11 +198,15 @@ unsigned char waitForSerialString(String waiting){
     for(int i = 0; i < n - 1; i++){
       buff[i] = buff[i + 1];
     }
-    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
-    buff[n - 1] = (char)mySerial.read();
-    Serial.print(buff[n-1]);
+    while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    buff[n - 1] = (char)Serial.read();
+    #ifdef SERIAL_DEBUG
+      Serial.print(buff[n-1]);
+    #endif
     if(millis() - startTime >= SERIAL_TIMEOUT){
-      Serial.println("TIMEOUT!");
+      #ifdef SERIAL_DEBUG
+        Serial.println("TIMEOUT!");
+      #endif
       return false;
     }
   }while(!eq(buff, waiting));
