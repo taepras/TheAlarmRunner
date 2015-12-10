@@ -11,6 +11,8 @@
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- LCD
 
+extern LiquidCrystal_I2C lcd;
+
 int blinkCounter = 0;
 int backlightCounter = 0;
 unsigned char lcdStatus = 0;     // LSB = is blinking, Next Bit = LCD is on
@@ -22,12 +24,12 @@ unsigned char isLcdBacklightOn(){
 void lcdBacklightOn(){ lcdStatus |= 2; }
 void lcdBacklightOff(){ lcdStatus &= ~2; }
 
-void turnBacklightOn(LiquidCrystal_I2C lcd){
+void turnBacklightOn(){
   lcdBacklightOn();
   backlightCounter = LCD_LIGHT_TIME / REFRESH_RATE;
 }
 
-void updateBacklight(LiquidCrystal_I2C lcd){
+void updateBacklight(){
   if(lcdStatus & 1 == 1){
     if (blinkCounter <= 0) {
       if(lcdStatus & 2)
@@ -51,15 +53,15 @@ void updateBacklight(LiquidCrystal_I2C lcd){
   }
 }
 
-void blinkLCD(LiquidCrystal_I2C lcd){
+void blinkLCD(){
   lcdStatus |= 1;
   blinkCounter = 0;
 }
 
-void noBlinkLCD(LiquidCrystal_I2C lcd){
+void noBlinkLCD(){
   lcdStatus &= ~1;
   blinkCounter = 0;
-  turnBacklightOn(lcd);
+  turnBacklightOn();
 }
 
 void playAlarmSound(){
@@ -73,11 +75,14 @@ void stopAlarmSound(){
   noTone(SPEAKER);
 }
 
-void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
+void printLcdCenter(String text, int row){
   lcd.setCursor(0, row);
-  lcd.print("                ");
+  for(int i = 0; i < 16; i++)
+    lcd.print(" ");
+  //lcd.print("                ");
   lcd.setCursor(max(8 - text.length() / 2, 0), row);
-  lcd.print(text);
+  for(int i = 0; i < text.length(); i++)
+    lcd.print(text.charAt(i));
 
   //Serial.println(text);
 }
@@ -85,38 +90,41 @@ void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
 //-------------------------------------------------------------------------------------------------------------------------------------------------- RTC
 
 String get2DString(int num){
-  String a;
-  a += (num / 10) + '0';
-  a += (num % 10) + '0';
+  String a = "";
+  a += (num / 10);
+  a += (num % 10);
+  Serial.print(num);
+  Serial.print(" ");
+  Serial.println(a);
   return a;  
 }
 
-unsigned char alarmHour;
-unsigned char alarmMin;
+//unsigned char alarmHour;
+//unsigned char alarmMin;
 
 unsigned char getAlarmHour(){
-  return alarmHour;
+  return (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
 }
 
 unsigned char getAlarmMin(){
-  return alarmMin;
+  return (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
 }
 
 unsigned char isAlarmTime(int hr, int mn){
-  return hr == alarmHour && mn == alarmMin;
+  return hr == getAlarmHour() && mn == getAlarmMin();
 }
 
 void setAlarmTime(String timeString){
   lcdBacklightOn();
   for(int i = 0; i < timeString.length(); i++)
     EEPROM.write(i, timeString.charAt(i));
-  loadAlarmTime();
+  //loadAlarmTime();
 }
 
-void loadAlarmTime(){
-  alarmHour = (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
-  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
-}
+//void loadAlarmTime(){
+//  alarmHour = (EEPROM.read(0) - '0') * 10 + (EEPROM.read(1) - '0');
+//  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
+//}
 
 String loadAlarmString(){
   String c = "";
@@ -157,13 +165,13 @@ String getLineFromSerial(){
     buff[1] = buff[0];
     buff[0] = (char)Serial.read();
     #ifdef DEBUG
-      Serial.print("Buffer: ");
-      Serial.print((char)buff[1]);
+//      Serial.print("Buffer: ");
+//      Serial.print((char)buff[1]);
       Serial.print((char)buff[0]);
-      Serial.print("\ttime: ");
-      Serial.print(startTime);
-      Serial.print(" vs ");
-      Serial.println(millis());
+//      Serial.print("\ttime: ");
+//      Serial.print(startTime);
+//      Serial.print(" vs ");
+//      Serial.println(millis());
     #endif
     if(millis() - startTime >= SERIAL_TIMEOUT)
       return "TIMEOUT";
@@ -217,9 +225,17 @@ unsigned char waitForSerialString(String waiting){
     }
     while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
     buff[n - 1] = (char)Serial.read();
-    //Serial.print(buff[n-1]);
+//    printLcdCenter(""+buff[n-1], 1);
+//    delay(100);
+Serial.print(buff[n-1]);
+    #ifdef DEBUG
+      
+      Serial.print(buff[n-1]);
+    #endif
     if(millis() - startTime >= SERIAL_TIMEOUT){
-      Serial.println("TIMEOUT!");
+      #ifdef DEBUG
+        Serial.println("TIMEOUT!");
+      #endif
       return false;
     }
   }while(!eq(buff, waiting));

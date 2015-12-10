@@ -13,6 +13,7 @@
 LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 16, 2);
 
 void setup() {
+  setAlarmTime("18:17");
   lcd.init();
   lcd.setCursor(0, 0);
   lcd.backlight();
@@ -31,11 +32,11 @@ void setup() {
   pinMode(BUTTON1, INPUT_PULLUP);
   pinMode(BUTTON2, INPUT_PULLUP);
   //pinMode(BUTTON3, INPUT_PULLUP);
-  printLcdCenter(lcd, "INITIALIZING", 0);
-  printLcdCenter(lcd, "THE ALARM RUNNER", 1);
+  printLcdCenter("INITIALIZING", 0);
+  printLcdCenter("THE ALARM RUNNER", 1);
   delay(2000);
-  turnBacklightOn(lcd);
-  loadAlarmTime();
+  turnBacklightOn();
+//  loadAlarmTime();
 }
 
 void loop() {
@@ -47,25 +48,26 @@ void loop() {
     lcd.noBacklight();
     
   readButtons();
-  
-  updateBacklight(lcd);
+
+//  mySerial.println("!");
+  updateBacklight();
   if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3)){
-    turnBacklightOn(lcd); 
+    turnBacklightOn(); 
   }
   
   switch(getMode()){
-    case NORMAL: normalLoop(lcd); break;
-    case ALARM: alarmLoop(lcd); break;
-    case UPDATE: updateLoop(lcd); break;
-    case VIEW_ALARM: viewAlarmLoop(lcd); break;
+    case NORMAL: normalLoop(); break;
+    case ALARM: alarmLoop(); break;
+    case UPDATE: updateLoop(); break;
+    case VIEW_ALARM: viewAlarmLoop(); break;
   }
     
   if(modeJustChanged()){
     switch(getMode()){
-      case NORMAL: normalSetup(lcd); break;
-      case ALARM: alarmSetup(lcd); break;
-      case UPDATE: updateSetup(lcd); break;
-      case VIEW_ALARM: viewAlarmSetup(lcd); break;
+      case NORMAL: normalSetup(); break;
+      case ALARM: alarmSetup(); break;
+      case UPDATE: updateSetup(); break;
+      case VIEW_ALARM: viewAlarmSetup(); break;
     }  
   }
 
