@@ -26,7 +26,7 @@ void normalLoop(){
     int tmp;
     if (RTC.read(tm)) {
       //timeString = (String(tm.Hour) + ":" + tm.Minute + ":" + tm.Second);
-      timeString = (get2DString(tm.Hour) + ":" + get2DString(tm.Minute) + ":" + get2DString(tm.Second)).toCharArray();
+      timeString = (get2DString(tm.Hour) + ":" + get2DString(tm.Minute) + ":" + get2DString(tm.Second));
 //      timeString[1] = get2DString(tm.Hour)[1];
 //      timeString[3] = get2DString(tm.Minute)[0];
 //      timeString[4] = get2DString(tm.Minute)[1];
