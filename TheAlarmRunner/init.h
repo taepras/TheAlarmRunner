@@ -28,8 +28,8 @@
 #define TX 1
 #define SPEAKER 3
 #define BUMPER 4
-#define MOTOR_R_F 5
-#define MOTOR_R_B 6
+#define MOTOR_R_F 6
+#define MOTOR_R_B 5
 #define MOTOR_L_F 7
 #define MOTOR_L_B 8
 #define BUTTON1 9

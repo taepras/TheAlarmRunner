@@ -1,5 +1,5 @@
 #include "DS1307RTC_CUSTOM.h"
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 #include <Time.h>
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
@@ -9,7 +9,7 @@
 #include "util.h"
 #include "actions.h"
 
-SoftwareSerial mySerial(11,12);
+//SoftwareSerial mySerial(11,12);
 LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 16, 2);
 
 void setup() {
@@ -17,7 +17,11 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.backlight();
   Serial.begin(9600);
-  mySerial.begin(9600);
+//  mySerial.begin(9600);
+  pinMode(2, OUTPUT);
+  digitalWrite(2,HIGH);
+  delay(500);
+  digitalWrite(2,LOW);
   pinMode(SPEAKER, OUTPUT);
   pinMode(BUMPER, INPUT_PULLUP);
   pinMode(MOTOR_R_F, OUTPUT);
@@ -35,7 +39,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.print(digitalRead(BUMPER));
   delay(REFRESH_RATE);
   
   if(isLcdBacklightOn())

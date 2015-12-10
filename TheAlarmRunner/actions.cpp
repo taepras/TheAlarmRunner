@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
@@ -77,6 +77,9 @@ void printLcdCenter(LiquidCrystal_I2C lcd, String text, int row){
   lcd.setCursor(0, row);
   lcd.print("                ");
   lcd.setCursor(max(8 - text.length() / 2, 0), row);
+  lcd.print(text);
+
+  //Serial.println(text);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- RTC
@@ -138,7 +141,7 @@ String loadAlarmString(){
 //-------------------------------------------------------------------------------------------------------------------------------------------------- Serial & Wifi
 
 long startTime;
-extern SoftwareSerial mySerial;
+//extern SoftwareSerial mySerial;
 
 String getLineFromSerial(){
   #ifdef DEBUG
@@ -148,11 +151,11 @@ String getLineFromSerial(){
   String recieved = "";
   char buff[] = {0, 0};
   while(buff[1] != '\r' || buff[0] != '\n'){
-    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
     if(buff[1] > 0)
       recieved += buff[1];
     buff[1] = buff[0];
-    buff[0] = (char)mySerial.read();
+    buff[0] = (char)Serial.read();
     #ifdef DEBUG
       Serial.print("Buffer: ");
       Serial.print((char)buff[1]);
@@ -212,9 +215,9 @@ unsigned char waitForSerialString(String waiting){
     for(int i = 0; i < n - 1; i++){
       buff[i] = buff[i + 1];
     }
-    while(!mySerial.available() && millis() - startTime < SERIAL_TIMEOUT);
-    buff[n - 1] = (char)mySerial.read();
-    Serial.print(buff[n-1]);
+    while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
+    buff[n - 1] = (char)Serial.read();
+    //Serial.print(buff[n-1]);
     if(millis() - startTime >= SERIAL_TIMEOUT){
       Serial.println("TIMEOUT!");
       return false;
