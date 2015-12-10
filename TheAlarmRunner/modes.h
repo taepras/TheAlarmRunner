@@ -9,5 +9,7 @@ void updateSetup();
 void updateLoop();
 void viewAlarmSetup();
 void viewAlarmLoop();
+void setAlarmSetup();
+void setAlarmLoop();
 
 #endif

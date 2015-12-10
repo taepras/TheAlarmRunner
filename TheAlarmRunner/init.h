@@ -25,6 +25,7 @@
 #define ALARM 1
 #define UPDATE 2
 #define VIEW_ALARM 3
+#define SET_ALARM 4
 
 #define RX 0
 #define TX 1

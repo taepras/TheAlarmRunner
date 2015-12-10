@@ -123,35 +123,17 @@ void updateSetup(){
 }
 
 //extern SoftwareSerial mySerial;
-const char* request = "GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n";
+//const char* request = "GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n";
 void updateLoop(){
   Serial.println("AT");
-  //delay(400);
-  if(waitForSerialString("OK\r\n")){
-//    printLcdCenter("WIFI MODULE", 0);
-//    printLcdCenter("READY", 1);
-    Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
-    //delay(400);
-    if(waitForSerialString("OK\r\n")){
-//      printLcdCenter("CONNECTED TO", 0);
-//      printLcdCenter("SERVER", 1);
-      Serial.println("AT+CIPSEND=46");
-      //delay(400);
-      if(waitForSerialString("> ")){
-        Serial.print("GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n");
-        //delay(400);
-        if(waitForSerialString("ALARM\r\n")){
-          setAlarmTime(getLineFromSerial());
-          printLcdCenter("ALARM UPDATED", 0);
-          printLcdCenter(loadAlarmString(), 1);
-          delay(2000);
-          #ifdef DEBUG
-            Serial.println("WI-FI UPDATING SUCCESS!");
-          #endif
-          setMode(NORMAL);
-          return;
-        }
-      }
+  if(getWebPage("GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n")){
+    if(waitForSerialString("ALARM\r\n")){
+      setAlarmTime(getLineFromSerial());
+      printLcdCenter("ALARM UPDATED", 0);
+      printLcdCenter(loadAlarmString(), 1);
+      delay(2000);
+      setMode(NORMAL);
+      return;
     }
   }
   printLcdCenter("WI-FI UPDATE", 0);
@@ -160,14 +142,72 @@ void updateLoop(){
   setMode(NORMAL);
 }
 
+short viewAlarmTimeLeft;
 void viewAlarmSetup(){
   printLcdCenter("UPCOMING ALARM", 0);
   printLcdCenter(loadAlarmString(), 1);
-  Serial.println(loadAlarmString());
-  delay(2000);
+  viewAlarmTimeLeft = 2000;
 }
 
 void viewAlarmLoop(){
-  setMode(NORMAL);
+  Serial.println(viewAlarmTimeLeft);
+  viewAlarmTimeLeft -= REFRESH_RATE;
+  if(isJustPressedAndActive(BUTTON2))
+    setMode(SET_ALARM);
+  else if(viewAlarmTimeLeft <= 0)
+    setMode(NORMAL);
 }
 
+int currentDigit = 0;
+char newAlarmString[8];
+extern LiquidCrystal_I2C lcd;
+void setAlarmSetup(){
+  printLcdCenter("SET ALARM", 0);
+  for(int i = 0; i < 8; i++)
+    newAlarmString[i] = '\0';
+  strcat(newAlarmString, loadAlarmString());
+  printLcdCenter(newAlarmString, 1);
+  currentDigit = 0;
+  lcd.blink();
+  lcd.setCursor(6, 1);
+}
+
+void setAlarmLoop(){
+  if(isJustPressedAndActive(BUTTON1) || currentDigit == 2){
+    currentDigit++;
+    lcd.setCursor(6 + currentDigit, 1);
+  }
+  if(isJustPressedAndActive(BUTTON2)){
+    switch(currentDigit){
+    case 0: newAlarmString[currentDigit] = (newAlarmString[currentDigit] < '2') ? newAlarmString[currentDigit] + 1 : '0'; break;
+    case 1:
+      newAlarmString[currentDigit] = (newAlarmString[0] < '2') ? 
+                                        ((newAlarmString[currentDigit] < '9') ? newAlarmString[currentDigit] + 1 : '0') : 
+                                        ((newAlarmString[currentDigit] < '3') ? newAlarmString[currentDigit] + 1 : '0'); 
+      break;
+    case 3: newAlarmString[currentDigit] = (newAlarmString[currentDigit] < '5') ? newAlarmString[currentDigit] + 1 : '0'; break;
+    case 4: newAlarmString[currentDigit] = (newAlarmString[currentDigit] < '9') ? newAlarmString[currentDigit] + 1 : '0'; break;
+    }
+    printLcdCenter(newAlarmString, 1);
+    lcd.setCursor(6 + currentDigit, 1);
+  }
+  if(currentDigit == 5){
+    lcd.noBlink();
+    setAlarmTime(newAlarmString);
+    delay(10);
+    printLcdCenter("ALARM SET", 0);
+    char request[64] = "GET http://tae.in.th/hw/setalarm.php?h=";
+    strcat(request, get2DString(getAlarmHour()));
+    strcat(request, "&m=");
+    strcat(request, get2DString(getAlarmMin()));
+    strcat(request, " HTTP/1.0\r\n\r\n");
+    Serial.println("AT");
+    if(getWebPage(request) && waitForSerialString("OK\r\n")){
+      setAlarmTime(getLineFromSerial());
+      printLcdCenter("ALARM SYNCED", 0);
+    }else
+      printLcdCenter("ALARM NOT SYNCED", 0);
+    delay(2000);
+    setMode(NORMAL);
+  }
+}

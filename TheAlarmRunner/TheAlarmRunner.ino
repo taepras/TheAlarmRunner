@@ -57,6 +57,7 @@ void loop() {
     case ALARM: alarmLoop(); break;
     case UPDATE: updateLoop(); break;
     case VIEW_ALARM: viewAlarmLoop(); break;
+    case SET_ALARM: setAlarmLoop(); break;
   }
     
   if(modeJustChanged()){
@@ -65,6 +66,7 @@ void loop() {
       case ALARM: alarmSetup(); break;
       case UPDATE: updateSetup(); break;
       case VIEW_ALARM: viewAlarmSetup(); break;
+      case SET_ALARM: setAlarmSetup(); break;
     }  
   }
 

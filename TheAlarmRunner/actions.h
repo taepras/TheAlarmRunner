@@ -21,5 +21,6 @@ const char* getLineFromSerial();
 //unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd);
 unsigned char waitForSerialString(const char* waiting);
 void driveMotor(int lf, int rf ,int lb, int rb);
+unsigned char getWebPage(const char*);
 
 #endif

@@ -253,3 +253,21 @@ void driveMotor(int lf, int rf ,int lb, int rb){
   digitalWrite(MOTOR_L_B, lb);
   digitalWrite(MOTOR_R_B, rb);
 }
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------- Wi-Fi
+
+unsigned char getWebPage(const char* request){
+  Serial.println("AT");
+  if(waitForSerialString("OK\r\n")){
+    Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
+    if(waitForSerialString("OK\r\n")){
+      Serial.print("AT+CIPSEND=");
+      Serial.println(strlen(request));
+      if(waitForSerialString("> ")){
+        Serial.print(request);
+        return true;
+      }
+    }
+  }
+  return false;
+}
