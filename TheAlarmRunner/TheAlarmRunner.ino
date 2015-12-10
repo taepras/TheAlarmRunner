@@ -32,9 +32,6 @@ void setup() {
 }
 
 void loop() {
-  #ifdef SERIAL_DEBUG
-    Serial.print(digitalRead(BUMPER));
-  #endif
   delay(REFRESH_RATE);
   
   if(isLcdBacklightOn())
@@ -43,6 +40,7 @@ void loop() {
     lcd.noBacklight();
     
   readButtons();
+  Serial.println(getMode());
   
   updateBacklight();
   if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3)){

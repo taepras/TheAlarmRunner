@@ -75,18 +75,19 @@ void stopAlarmSound(){
   noTone(SPEAKER);
 }
 
-void printLcdCenter(String text, int row){
+void printLcdCenter(const char* text, int row){
   lcd.setCursor(0, row);
   lcd.print("                ");
-  lcd.setCursor(max(8 - text.length() / 2, 0), row);
+  lcd.setCursor(max(8 - strlen(text) / 2, 0), row);
+  lcd.print(text);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- RTC
 
-String get2DString(int num){
-  String a;
-  a += (num / 10) + '0';
-  a += (num % 10) + '0';
+char* get2DString(int num){
+  char* a = new char[2];
+  a[0] = (num / 10) + '0';
+  a[1] = (num % 10) + '0';
   return a;  
 }
 
@@ -125,10 +126,10 @@ void setAlarmTime(String timeString){
 //  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
 //}
 
-String loadAlarmString(){
-  String c = "";
+char* loadAlarmString(){
+  char* c = new char[5];
   for(int i = 0; i < 5; i++)
-    c += (char)EEPROM.read(i);
+    c[i] = (char)EEPROM.read(i);
   return c;
 }
 

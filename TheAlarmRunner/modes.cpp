@@ -52,8 +52,23 @@ void normalLoop(){
       lcd.print(get2DString(dayOfMonth));
       lcd.print("/");
       lcd.print(year,DEC);
-      lcd.print("  ");
+      lcd.println("  ");
 
+      Serial.print("   ");
+      Serial.print(get2DString(hour));
+      Serial.print(":");
+      Serial.print(get2DString(minute));
+      Serial.print(":");
+      Serial.print(get2DString(second));
+      Serial.println("   ");
+      Serial.print("  ");
+      Serial.print(get2DString(month));
+      Serial.print("/");
+      Serial.print(get2DString(dayOfMonth));
+      Serial.print("/");
+      Serial.print(year,DEC);
+      Serial.print("  ");
+      
 //      timeString[0] = get2DString(tm.Hour)[0];
 //      timeString[1] = get2DString(tm.Hour)[1];
 //      timeString[3] = get2DString(tm.Minute)[0];
@@ -71,10 +86,10 @@ void normalLoop(){
 //      dateString[9] = get2DString(tm.Year)[3];
 //      //dateString = (const char*)(get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
 //      printLcdCenter(dateString, 1);
-      if(isAlarmTime(hour, minute) && second < 3)
-        setMode(ALARM);
-      if(minute == 0 && second < 3)
-        setMode(UPDATE);
+//      if(isAlarmTime(hour, minute) && second < 3)
+//        setMode(ALARM);
+//      if(minute == 0 && second < 3)
+//        setMode(UPDATE);
 //    } else {
 //      printLcdCenter("RTC", 0);
 //      printLcdCenter("ERROR", 1);
