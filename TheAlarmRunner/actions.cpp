@@ -75,27 +75,24 @@ void stopAlarmSound(){
   noTone(SPEAKER);
 }
 
-void printLcdCenter(String text, int row){
+void printLcdCenter(const char* text, int row){
   lcd.setCursor(0, row);
   for(int i = 0; i < 16; i++)
     lcd.print(" ");
   //lcd.print("                ");
-  lcd.setCursor(max(8 - text.length() / 2, 0), row);
-  for(int i = 0; i < text.length(); i++)
-    lcd.print(text.charAt(i));
+  lcd.setCursor(max(8 - strlen(text) / 2, 0), row);
+  for(int i = 0; i < strlen(text); i++)
+    lcd.print(text[i]);
 
   //Serial.println(text);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------- RTC
 
-String get2DString(int num){
-  String a = "";
-  a += (num / 10);
-  a += (num % 10);
-  Serial.print(num);
-  Serial.print(" ");
-  Serial.println(a);
+const char* get2DString(int num){
+  char* a = "00";
+  a[0] = (num / 10) + '0';
+  a[1] = (num % 10) + '0';
   return a;  
 }
 
@@ -114,10 +111,10 @@ unsigned char isAlarmTime(int hr, int mn){
   return hr == getAlarmHour() && mn == getAlarmMin();
 }
 
-void setAlarmTime(String timeString){
+void setAlarmTime(const char* timeString){
   lcdBacklightOn();
-  for(int i = 0; i < timeString.length(); i++)
-    EEPROM.write(i, timeString.charAt(i));
+  for(int i = 0; i < strlen(timeString); i++)
+    EEPROM.write(i, timeString[i]);
   //loadAlarmTime();
 }
 
@@ -126,10 +123,14 @@ void setAlarmTime(String timeString){
 //  alarmMin = (EEPROM.read(3) - '0') * 10 + (EEPROM.read(4) - '0');
 //}
 
-String loadAlarmString(){
-  String c = "";
-  for(int i = 0; i < 5; i++)
-    c += (char)EEPROM.read(i);
+const char* loadAlarmString(){
+  char* c = "00:00";
+  for(int i = 0; i < 5; i++){
+    delay(1);
+    c[i] = (char)EEPROM.read(i);
+  }
+//  c[5] = '\0';
+//  Serial.println(c);
   return c;
 }
 
@@ -151,17 +152,19 @@ String loadAlarmString(){
 long startTime;
 //extern SoftwareSerial mySerial;
 
-String getLineFromSerial(){
+const char* getLineFromSerial(){
   #ifdef DEBUG
     Serial.println("Waiting for input");
   #endif
   startTime = millis();
-  String recieved = "";
+  char recieved[STR_BUFF_SIZE] = "";
   char buff[] = {0, 0};
   while(buff[1] != '\r' || buff[0] != '\n'){
     while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
-    if(buff[1] > 0)
-      recieved += buff[1];
+    if(buff[1] > 0){
+      recieved[strlen(recieved)] = buff[1];
+      recieved[strlen(recieved) + 1] = '\0';
+    }
     buff[1] = buff[0];
     buff[0] = (char)Serial.read();
     #ifdef DEBUG
@@ -203,15 +206,17 @@ unsigned char eq(char *ca, String s){
   return true;
 }
 
-unsigned char waitForSerialString(String waiting){
+unsigned char waitForSerialString(const char* waiting){
   #ifdef DEBUG
     Serial.print("Waiting for... ");
     Serial.println(waiting);
   #endif 
   startTime = millis();
-  int n = waiting.length();
-  char buff[n];
-  for(int i = 0; i < n; i++) buff[i] = 0;
+  int n = strlen(waiting);
+  char buff[n + 1];
+  for(int i = 0; i <= n; i++)
+    buff[i] = '\0';
+//  for(int i = 0; i < n; i++) buff[i] = 0;
   do{
     #ifdef DEBUG
       Serial.print("Buffer: ");
@@ -225,11 +230,9 @@ unsigned char waitForSerialString(String waiting){
     }
     while(!Serial.available() && millis() - startTime < SERIAL_TIMEOUT);
     buff[n - 1] = (char)Serial.read();
-//    printLcdCenter(""+buff[n-1], 1);
-//    delay(100);
-Serial.print(buff[n-1]);
+//    printLcdCenter(a, 1);
+//    delay(300);
     #ifdef DEBUG
-      
       Serial.print(buff[n-1]);
     #endif
     if(millis() - startTime >= SERIAL_TIMEOUT){
@@ -238,7 +241,7 @@ Serial.print(buff[n-1]);
       #endif
       return false;
     }
-  }while(!eq(buff, waiting));
+  }while(strcmp(buff, waiting) != 0);
   return true;
 }
 

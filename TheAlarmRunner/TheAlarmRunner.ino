@@ -13,7 +13,7 @@
 LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 16, 2);
 
 void setup() {
-  setAlarmTime("18:17");
+//  setAlarmTime("21:19");
   lcd.init();
   lcd.setCursor(0, 0);
   lcd.backlight();
@@ -31,25 +31,22 @@ void setup() {
   pinMode(MOTOR_L_B, OUTPUT);  
   pinMode(BUTTON1, INPUT_PULLUP);
   pinMode(BUTTON2, INPUT_PULLUP);
-  //pinMode(BUTTON3, INPUT_PULLUP);
   printLcdCenter("INITIALIZING", 0);
   printLcdCenter("THE ALARM RUNNER", 1);
   delay(2000);
   turnBacklightOn();
-//  loadAlarmTime();
 }
 
 void loop() {
   delay(REFRESH_RATE);
-  
+
   if(isLcdBacklightOn())
     lcd.backlight();
   else
     lcd.noBacklight();
     
   readButtons();
-
-//  mySerial.println("!");
+  
   updateBacklight();
   if(isJustPressed(BUTTON1) || isJustPressed(BUTTON2) || isJustPressed(BUTTON3)){
     turnBacklightOn(); 

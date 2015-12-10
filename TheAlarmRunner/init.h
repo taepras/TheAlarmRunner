@@ -19,6 +19,8 @@
 #define DS1307_I2C_ADDRESS 0x68
 #define LCD_I2C_ADDRESS 0x27
 
+#define STR_BUFF_SIZE 128
+
 #define NORMAL 0
 #define ALARM 1
 #define UPDATE 2

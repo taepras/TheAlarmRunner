@@ -21,32 +21,31 @@ void normalLoop(){
     timeRefreshCount = CLOCK_PERIOD / REFRESH_RATE;
     tmElements_t tm;
     //TODO: FIX THIS
-    String timeString = "";
-    
+    char timeString[11] = "";
+    char chtmp[8];
     int tmp;
     if (RTC.read(tm)) {
-      //timeString = (String(tm.Hour) + ":" + tm.Minute + ":" + tm.Second);
-      timeString = (get2DString(tm.Hour) + ":" + get2DString(tm.Minute) + ":" + get2DString(tm.Second));
-//      timeString[1] = get2DString(tm.Hour)[1];
-//      timeString[3] = get2DString(tm.Minute)[0];
-//      timeString[4] = get2DString(tm.Minute)[1];
-//      timeString[6] = get2DString(tm.Second)[0];
-//      timeString[7] = get2DString(tm.Second)[1];
+      strcat(timeString, get2DString(tm.Hour));
+      strcat(timeString, ":");
+      strcat(timeString, get2DString(tm.Minute));
+      strcat(timeString, ":");
+      strcat(timeString, get2DString(tm.Second));
       printLcdCenter(timeString, 0);
-//      dateString[0] = get2DString(tm.Day)[0];
-//      dateString[1] = get2DString(tm.Day)[1];
-//      dateString[3] = get2DString(tm.Month)[0];
-//      dateString[4] = get2DString(tm.Month)[1];
-//      dateString[6] = get2DString(tm.Year)[0];
-//      dateString[7] = get2DString(tm.Year)[1];
-//      dateString[8] = get2DString(tm.Year)[2];
-//      dateString[9] = get2DString(tm.Year)[3];
-      timeString = (get2DString(tm.Day) + "/" + get2DString(tm.Month) + "/" + String(tmYearToCalendar(tm.Year)));
+      strcpy(timeString, "");
+      strcat(timeString, get2DString(tm.Day));
+      strcat(timeString, "/");
+      strcat(timeString, get2DString(tm.Month));
+      strcat(timeString, "/");
+      strcat(timeString, itoa(tmYearToCalendar(tm.Year), chtmp, 10));
       printLcdCenter(timeString, 1);
+//      timeString = String(get2DString(tm.Day)) + "/" + String(get2DString(tm.Month)) + "/" + String(tmYearToCalendar(tm.Year));
+//      printLcdCenter(timeString, 1);
       if(isAlarmTime(tm.Hour, tm.Minute) && tm.Second < 3)
         setMode(ALARM);
-      else if(tm.Minute == 0 && tm.Second < 2)
+      else if(tm.Minute == 0 && tm.Second < 2){
+        turnBacklightOn();
         setMode(UPDATE);
+      }
     } else {
       printLcdCenter("RTC", 0);
       printLcdCenter("ERROR", 1);
@@ -79,14 +78,26 @@ void alarmLoop(){
     job = 1;
   
   if(job == 0){
-    driveMotor(HIGH, HIGH, LOW, LOW);
+//    driveMotor(HIGH, HIGH, LOW, LOW);
+    digitalWrite(MOTOR_L_F, HIGH);
+    digitalWrite(MOTOR_R_F, HIGH);
+    digitalWrite(MOTOR_L_B, LOW);
+    digitalWrite(MOTOR_R_B, LOW);
   }
   
   if(job >= 1 && job <= TURNING_TIME / REFRESH_RATE){
-    driveMotor(LOW, LOW, HIGH, HIGH);
+//    driveMotor(LOW, LOW, HIGH, HIGH);
+    digitalWrite(MOTOR_L_F, LOW);
+    digitalWrite(MOTOR_R_F, LOW);
+    digitalWrite(MOTOR_L_B, HIGH);
+    digitalWrite(MOTOR_R_B, HIGH);
     job++;
   }else if(job > TURNING_TIME / REFRESH_RATE && job <= TURNING_TIME / REFRESH_RATE * 2){
-    driveMotor(HIGH, LOW, LOW, HIGH);
+//    driveMotor(HIGH, LOW, LOW, HIGH);
+    digitalWrite(MOTOR_L_F, HIGH);
+    digitalWrite(MOTOR_R_F, LOW);
+    digitalWrite(MOTOR_L_B, LOW);
+    digitalWrite(MOTOR_R_B, HIGH);
     job++;
   } else {
     job = 0;
@@ -98,7 +109,11 @@ void alarmLoop(){
     setMode(NORMAL);
     stopAlarmSound();
     noBlinkLCD();
-    driveMotor(LOW, LOW, LOW, LOW);
+//    driveMotor(LOW, LOW, LOW, LOW);
+    digitalWrite(MOTOR_L_F, LOW);
+    digitalWrite(MOTOR_R_F, LOW);
+    digitalWrite(MOTOR_L_B, LOW);
+    digitalWrite(MOTOR_R_B, LOW);
   }  
 }
 
@@ -111,27 +126,25 @@ void updateSetup(){
 const char* request = "GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n";
 void updateLoop(){
   Serial.println("AT");
-  delay(400);
+  //delay(400);
   if(waitForSerialString("OK\r\n")){
-    //printLcdCenter("WIFI MODULE", 0);
-    //printLcdCenter("READY", 1);
+//    printLcdCenter("WIFI MODULE", 0);
+//    printLcdCenter("READY", 1);
     Serial.println("AT+CIPSTART=\"TCP\",\"tae.in.th\",80");
-    delay(400);
+    //delay(400);
     if(waitForSerialString("OK\r\n")){
-      //printLcdCenter("CONNECTED TO", 0);
-      //printLcdCenter("SERVER", 1);
+//      printLcdCenter("CONNECTED TO", 0);
+//      printLcdCenter("SERVER", 1);
       Serial.println("AT+CIPSEND=46");
-      delay(400);
+      //delay(400);
       if(waitForSerialString("> ")){
         Serial.print("GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n");
-        delay(400);
+        //delay(400);
         if(waitForSerialString("ALARM\r\n")){
           setAlarmTime(getLineFromSerial());
           printLcdCenter("ALARM UPDATED", 0);
-//          digitalWrite(2, HIGH);
-//          delay(2000);
-//          digitalWrite(2, LOW);
           printLcdCenter(loadAlarmString(), 1);
+          delay(2000);
           #ifdef DEBUG
             Serial.println("WI-FI UPDATING SUCCESS!");
           #endif

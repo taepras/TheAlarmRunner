@@ -8,18 +8,18 @@ void blinkLCD();
 void noBlinkLCD();
 void playAlarmSound();
 void stopAlarmSound();
-void printLcdCenter(String text, int row);
-String get2DString(int num);
-String loadAlarmString();
+void printLcdCenter(const char* text, int row);
+const char* get2DString(int num);
+const char* loadAlarmString();
 unsigned char getAlarmHour();
 unsigned char getAlarmMin();
 unsigned char isAlarmTime(int, int);
-void setAlarmTime(String);
+void setAlarmTime(const char*);
 //void loadAlarmTime();
-void setClockTime(String);
-String getLineFromSerial();
+//void setClockTime(String);
+const char* getLineFromSerial();
 //unsigned char waitForSerialLine(String waitingFor, LiquidCrystal_I2C lcd);
-unsigned char waitForSerialString(String waiting);
+unsigned char waitForSerialString(const char* waiting);
 void driveMotor(int lf, int rf ,int lb, int rb);
 
 #endif
