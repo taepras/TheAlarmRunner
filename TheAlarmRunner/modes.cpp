@@ -1,3 +1,16 @@
+/*******************************************************
+ * Copyright (C) 
+ * Thanawit Prasongpongchai
+ * Phatrasek JIrabovonvisut
+ * Sirawit Yeesong
+ * Phoomin Leejongpermpoon
+ * 
+ * This file is part of The Alarm Runner Project.
+ * for 2110363 HW SYN LAB I
+ * 
+ * Please do not copy/use these code without express permission
+ *******************************************************/
+
 //#include <SoftwareSerial.h>
 
 #include "DS1307RTC_CUSTOM.h"
