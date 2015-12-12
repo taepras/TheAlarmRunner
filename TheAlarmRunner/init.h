@@ -6,7 +6,7 @@
 //#define DEBUG
 
 #define LCD_LIGHT_TIME 8000
-#define LDR_THRESHOLD 850
+#define LDR_THRESHOLD 600
 #define TURNING_TIME 1000
 #define REFRESH_RATE 20
 #define BLINK_PERIOD 600

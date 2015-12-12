@@ -125,7 +125,6 @@ void updateSetup(){
 //extern SoftwareSerial mySerial;
 //const char* request = "GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n";
 void updateLoop(){
-  Serial.println("AT");
   if(getWebPage("GET http://tae.in.th/hw/alarm.php HTTP/1.0\r\n\r\n")){
     if(waitForSerialString("ALARM\r\n")){
       setAlarmTime(getLineFromSerial());
@@ -150,7 +149,7 @@ void viewAlarmSetup(){
 }
 
 void viewAlarmLoop(){
-  Serial.println(viewAlarmTimeLeft);
+//  Serial.println(viewAlarmTimeLeft);
   viewAlarmTimeLeft -= REFRESH_RATE;
   if(isJustPressedAndActive(BUTTON2))
     setMode(SET_ALARM);
@@ -201,7 +200,6 @@ void setAlarmLoop(){
     strcat(request, "&m=");
     strcat(request, get2DString(getAlarmMin()));
     strcat(request, " HTTP/1.0\r\n\r\n");
-    Serial.println("AT");
     if(getWebPage(request) && waitForSerialString("OK\r\n")){
       setAlarmTime(getLineFromSerial());
       printLcdCenter("ALARM SYNCED", 0);
